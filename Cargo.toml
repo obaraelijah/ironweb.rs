@@ -1,11 +1,4 @@
-[package]
-name = "backend"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-
 [workspace]
 members = [
-    "backend"
+    "backend",
 ]

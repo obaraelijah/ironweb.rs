@@ -1,3 +1,16 @@
+[package]
+name = "webapp"
+version = "1.0.0"
+edition = "2018"
+
+[dependencies]
+diesel = { version = "2.1.6", optional = true }
+toml = "0.8.12"
+serde = { version = "1.0.147", features = ["derive"] }
+
+[features]
+backend = ["diesel"]
+
 [workspace]
 members = [
     "backend",

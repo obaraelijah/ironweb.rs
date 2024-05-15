@@ -2,13 +2,12 @@ use serde::Deserialize;
 use std::fs::read_to_string;
 use std::error::Error;
 
-#[derive(Deserialize, Config)]
+#[derive(Deserialize, Clone)]
 pub struct Config {
-    server,
     pub postgres: PostgresConfig,
 }
 
-#[derive(Deserialize, Config)]
+#[derive(Deserialize, Clone)]
 pub struct PostgresConfig {
     pub host: String,
     pub username: String,

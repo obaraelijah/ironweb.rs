@@ -11,17 +11,18 @@ pub struct Config {
 
 impl Config {
     pub fn from_file(filename: &str) -> Result<Self> {
-        let content  = read_to_string(filename)?;
-        let config: Self  = toml::from_str(&content)?;
-        Ok(config)
+        Ok(toml::from_str(&read_to_string(filename)?)?)
     }
 }
 
 #[derive(Deserialize, Clone)]
 pub struct LogConfig {
-   pub webapp: String,
-}
+    /// The logging level of actix-web
+    pub actix_web: String,
 
+    /// The logging level of the application
+    pub webapp: String,
+}
 #[derive(Deserialize, Clone)]
 pub struct PostgresConfig {
     pub host: String,

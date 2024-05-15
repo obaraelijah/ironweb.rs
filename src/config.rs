@@ -1,13 +1,12 @@
+use anyhow::Result;
 use serde::Deserialize;
 use std::fs::read_to_string;
-use anyhow::Result;
 
 #[derive(Deserialize, Clone)]
 pub struct Config {
     pub log: LogConfig,
     pub postgres: PostgresConfig,
 }
-
 
 impl Config {
     pub fn from_file(filename: &str) -> Result<Self> {

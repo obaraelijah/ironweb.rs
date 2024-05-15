@@ -1,15 +1,16 @@
-/// Basic models
-/// #[cfg(feature = "backend")]
+//! Basic models
+#[cfg(feature = "backend")]
 use crate::schema::sessions;
+use diesel::{Insertable, Queryable};
 use serde::{Deserialize, Serialize};
 use std::convert::From;
-use diesel::{Insertable, Queryable};
 
 #[cfg_attr(feature = "backend", derive(Insertable, Queryable))]
 #[cfg_attr(feature = "backend", table_name = "sessions")]
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
+/// A session representation
 pub struct Session {
-    ///  session token
+    /// The actual session token
     pub token: String,
 }
 

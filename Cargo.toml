@@ -7,6 +7,7 @@ edition = "2018"
 diesel = { version = "2.1.6", optional = true }
 toml = "0.8.12"
 serde = { version = "1.0.147", features = ["derive"] }
+anyhow = "1.0.51"
 
 [features]
 backend = ["diesel"]

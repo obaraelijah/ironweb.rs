@@ -1,6 +1,6 @@
 use serde::Deserialize;
 use std::fs::read_to_string;
-use std::error::Error;
+use anyhow::Result;
 
 #[derive(Deserialize, Clone)]
 pub struct Config {
@@ -10,7 +10,7 @@ pub struct Config {
 
 
 impl Config {
-    pub fn from_file(filename: &str) -> Result<Self, Box<dyn Error>> {
+    pub fn from_file(filename: &str) -> Result<Self> {
         let content  = read_to_string(filename)?;
         let config: Self  = toml::from_str(&content)?;
         Ok(config)

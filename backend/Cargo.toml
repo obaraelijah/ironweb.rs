@@ -3,6 +3,21 @@ name = "backend"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "backend"
+path = "src/lib.rs"
+
+[[bin]]
+name = "backend"
+path = "src/main.rs"
 
 [dependencies]
+actix = "0.10.0"
+actix-web = "4"
+anyhow = "1.0.51"
+diesel = { version = "2.1.6", features = ["r2d2", "postgres"] }
+r2d2 = "0.8"
+clap = { version = "3.0", features = ["yaml"] }
+webapp = { version = "1.0.0", path = "..", features = ["backend"] }
+env_logger = "0.11.3"
+log = "0.4.14"

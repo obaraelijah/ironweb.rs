@@ -1,7 +1,6 @@
 //! Basic models
 #[cfg(feature = "backend")]
 use crate::schema::sessions;
-use diesel::{Insertable, Queryable};
 use serde::{Deserialize, Serialize};
 use std::convert::From;
 

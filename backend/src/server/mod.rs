@@ -1,6 +1,9 @@
 mod test;
 
+use crate::database::DatabaseExecutor;
 use actix_web::{middleware, web::{self, post, resource}, App, HttpServer};
+use diesel::{r2d2::ConnectionManager, IntoSql, PgConnection};
+use r2d2::Pool;
 use webapp::{config::Config, API_URL_LOGIN_CREDENTIALS, API_URL_LOGIN_SESSION, API_URL_LOGOUT};
 use anyhow::{format_err, Ok, Result};
 use url::{Url, Host};
@@ -26,8 +29,22 @@ impl Server {
         // Actor system
         let runner = actix::System::new();
 
+        // database executor actors
+        let database_url = format!(
+            "postgres://{}:{}@{}/{}",
+            config.postgres.username,
+            config.postgres.password,
+            config.postgres.host,
+            config.postgres.database,
+        );
+
+        let manager = ConnectionManager::<PgConnection>::new(database_url);
+        let pool = Pool::builder().build(manager)?;
+        let db_addr = SyncArbiter::start(num_cpus::get(), move || DatabaseExecutor(pool.clone()));
+
         let server = HttpServer::new(move || {
             App::new()
+               .app_data(db_addr.clone())
                .wrap(middleware::Logger::default())
                .service(resource(API_URL_LOGIN_CREDENTIALS).route(post().to(login_credentials)))
         });

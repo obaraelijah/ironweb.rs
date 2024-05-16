@@ -14,6 +14,7 @@ backend = ["diesel"]
 
 [workspace]
 members = [
-    "backend",
+    "backend", 
+    "frontend",
 ]
 resolver = "2"

@@ -1,3 +1,5 @@
+mod test;
+
 use actix_web::{middleware, web::{self, post, resource}, App, HttpServer};
 use webapp::{config::Config, API_URL_LOGIN_CREDENTIALS, API_URL_LOGIN_SESSION, API_URL_LOGOUT};
 use anyhow::{format_err, Ok, Result};
@@ -8,6 +10,7 @@ use std::{
     slice::from_ref,
     thread,
 };
+use crate::http::login_credentials::login_credentials;
 
 /// The server instance
 pub struct Server {
@@ -26,6 +29,7 @@ impl Server {
         let server = HttpServer::new(move || {
             App::new()
                .wrap(middleware::Logger::default())
+               .service(resource(API_URL_LOGIN_CREDENTIALS).route(post().to(login_credentials)))
         });
         
         // server url from configuration

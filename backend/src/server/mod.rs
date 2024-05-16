@@ -1,7 +1,7 @@
 use actix_web::{middleware, web::{self, post, resource}, App, HttpServer};
 use webapp::{config::Config, API_URL_LOGIN_CREDENTIALS, API_URL_LOGIN_SESSION, API_URL_LOGOUT};
-use anyhow::{format_err, Result};
-use url::Url;
+use anyhow::{format_err, Ok, Result};
+use url::{Url, Host};
 use actix::{prelude::*, SystemRunner};
 use std::{
     net::{SocketAddr, ToSocketAddrs},
@@ -18,6 +18,7 @@ pub struct Server {
 
 
 impl Server {
+    /// Create a new server instance
     pub fn from_config(config: &Config) -> Result<Self> {
         // Actor system
         let runner = actix::System::new();
@@ -47,7 +48,9 @@ impl Server {
     }
 
     pub fn start(self) -> Result<()> {
-        unimplemented!()
+        self.runner.run()?;
+
+        Ok(())
     }
 
      /// Convert an `Url` to a vector of `SocketAddr`
@@ -58,21 +61,20 @@ impl Server {
         let port = url
             .port_or_known_default()
             .ok_or_else(|| format_err!("No port number in the URL"))?;
-        let addrs;
-        let addr;
-        Ok(match host {
-            url::Host::Domain(domain) => {
-                addrs = (domain, port).to_socket_addrs()?;
-                addrs.as_slice().to_owned()
+
+        match host {
+            Host::Domain(domain) => {
+                let addrs: Vec<SocketAddr> = (domain, port).to_socket_addrs()?.collect();
+                Ok(addrs)
             }
-            url::Host::Ipv4(ip) => {
-                addr = (ip, port).into();
-                from_ref(&addr).to_owned()
+            Host::Ipv4(ip) => {
+                let addr = SocketAddr::from((ip, port));
+                Ok(vec![addr])
             }
-            url::Host::Ipv6(ip) => {
-                addr = (ip, port).into();
-                from_ref(&addr).to_owned()
+            Host::Ipv6(ip) => {
+                let addr = SocketAddr::from((ip, port));
+                Ok(vec![addr])
             }
-        })
+        }
     }
 }

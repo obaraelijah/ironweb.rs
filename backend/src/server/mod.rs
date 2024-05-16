@@ -1,19 +1,23 @@
 mod test;
 
 use crate::database::DatabaseExecutor;
-use actix_web::{middleware, web::{self, post, resource}, App, HttpServer};
+use crate::http::login_credentials::login_credentials;
+use actix::{prelude::*, SystemRunner};
+use actix_web::{
+    middleware,
+    web::{self, post, resource},
+    App, HttpServer,
+};
+use anyhow::{format_err, Ok, Result};
 use diesel::{r2d2::ConnectionManager, IntoSql, PgConnection};
 use r2d2::Pool;
-use webapp::{config::Config, API_URL_LOGIN_CREDENTIALS, API_URL_LOGIN_SESSION, API_URL_LOGOUT};
-use anyhow::{format_err, Ok, Result};
-use url::{Url, Host};
-use actix::{prelude::*, SystemRunner};
 use std::{
     net::{SocketAddr, ToSocketAddrs},
     slice::from_ref,
     thread,
 };
-use crate::http::login_credentials::login_credentials;
+use url::{Host, Url};
+use webapp::{config::Config, API_URL_LOGIN_CREDENTIALS, API_URL_LOGIN_SESSION, API_URL_LOGOUT};
 
 /// The server instance
 pub struct Server {
@@ -21,7 +25,6 @@ pub struct Server {
     runner: SystemRunner,
     url: Url,
 }
-
 
 impl Server {
     /// Create a new server instance
@@ -44,11 +47,11 @@ impl Server {
 
         let server = HttpServer::new(move || {
             App::new()
-               .app_data(db_addr.clone())
-               .wrap(middleware::Logger::default())
-               .service(resource(API_URL_LOGIN_CREDENTIALS).route(post().to(login_credentials)))
+                .app_data(db_addr.clone())
+                .wrap(middleware::Logger::default())
+                .service(resource(API_URL_LOGIN_CREDENTIALS).route(post().to(login_credentials)))
         });
-        
+
         // server url from configuration
         let url = Url::parse(&config.server.url)?;
 
@@ -74,8 +77,8 @@ impl Server {
         Ok(())
     }
 
-     /// Convert an `Url` to a vector of `SocketAddr`
-     pub fn url_to_socket_addrs(url: &Url) -> Result<Vec<SocketAddr>> {
+    /// Convert an `Url` to a vector of `SocketAddr`
+    pub fn url_to_socket_addrs(url: &Url) -> Result<Vec<SocketAddr>> {
         let host = url
             .host()
             .ok_or_else(|| format_err!("No host name in the URL"))?;

@@ -6,9 +6,7 @@ use actix_web::{
 use log::debug;
 use webapp::protocol::{request::LoginCredentials, response::Login};
 
-pub async fn login_credentials(
-    payload: Json<LoginCredentials>,
-) -> Result<HttpResponse, Error> {
+pub async fn login_credentials(payload: Json<LoginCredentials>) -> Result<HttpResponse, Error> {
     let r = payload.into_inner();
 
     debug!("User {} is trying to login", r.username);

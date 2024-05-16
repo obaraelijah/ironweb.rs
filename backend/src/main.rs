@@ -1,10 +1,10 @@
 use std::env::set_var;
 
 use anyhow::{format_err, Result};
+use backend::Server;
 use clap::{App, Arg};
 use log::info;
 use webapp::config::Config;
-use backend::Server;
 
 fn main() -> Result<()> {
     // Define CLI parameters using the App API

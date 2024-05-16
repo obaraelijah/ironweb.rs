@@ -62,7 +62,7 @@ impl Handler<UpdateSession> for DatabaseExecutor {
 
 /// Delete session + needs a token
 pub struct DeleteSession(pub String);
- 
+
 impl Message for DeleteSession {
     type Result = Result<()>;
 }
@@ -71,7 +71,6 @@ impl Handler<DeleteSession> for DatabaseExecutor {
     type Result = Result<()>;
 
     fn handle(&mut self, msg: DeleteSession, _: &mut Self::Context) -> Self::Result {
-
         // Delete the session
         debug!("Deleting session: {}", msg.0);
         delete(sessions.filter(token.eq(&msg.0))).execute(&mut *self.0.get()?)?;

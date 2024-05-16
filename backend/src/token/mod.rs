@@ -1,7 +1,11 @@
-use actix_web::{ HttpResponse, ResponseError};
+use actix_web::{HttpResponse, ResponseError};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
-use thiserror::Error;
 use serde::{Deserialize, Serialize};
+use std::time::{SystemTime, UNIX_EPOCH};
+use thiserror::Error;
+use uuid::Uuid;
+
+const SECRET: &[u8] = b"my_secret";
 
 #[derive(Debug, Error)]
 pub enum TokenError {
@@ -33,10 +37,33 @@ pub struct Token {
 
 impl Token {
     pub fn create(username: &str) -> Result<String, TokenError> {
-        unimplemented!()
+        const DEFAULT_TOKEN_VALIDITY: i64 = 3600;
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map_err(|_| TokenError::Create)?;
+
+        let claim = Token {
+            sub: username.to_owned(),
+            exp: now.as_secs() as i64 + DEFAULT_TOKEN_VALIDITY,
+            iat: now.as_secs() as i64,
+            jti: Uuid::new_v4().to_string(),
+        };
+
+        encode(
+            &Header::default(),
+            &claim,
+            &EncodingKey::from_secret(SECRET),
+        )
+        .map_err(|_| TokenError::Create)
     }
 
     pub fn verify(token: &str) -> Result<String, TokenError> {
-        unimplemented!()
+        let data = decode::<Token>(
+            token,
+            &DecodingKey::from_secret(SECRET),
+            &Validation::default(),
+        )
+        .map_err(|_| TokenError::Verify)?;
+        Self::create(&data.claims.sub)
     }
- }
+}

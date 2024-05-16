@@ -1,7 +1,6 @@
 mod database;
-mod server;
 mod http;
+mod server;
 mod token;
 
 pub use crate::server::Server;
-

@@ -1,5 +1,4 @@
 #[cfg(test)]
-
 use crate::server::Server;
 use anyhow::{Ok, Result};
 use webapp::{config::Config, CONFIG_FILENAME};

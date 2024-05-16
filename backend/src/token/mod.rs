@@ -1,3 +1,5 @@
+mod test;
+
 use actix_web::{HttpResponse, ResponseError};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};

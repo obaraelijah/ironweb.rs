@@ -16,6 +16,7 @@ actix = "0.13.3"
 actix-cors = "0.7.0"
 actix-web = "4"
 anyhow = "1.0.51"
+serde = { version = "1.0.147", features = ["derive"] }
 diesel = { version = "2.1.6", features = ["r2d2", "postgres"] }
 r2d2 = "0.8"
 clap = { version = "3.0", features = ["yaml"] }
@@ -24,3 +25,6 @@ env_logger = "0.11.3"
 log = "0.4.14"
 url = "2.2.2"
 num_cpus = "1.13.0"
+jsonwebtoken = "9.3.0"
+thiserror = "1.0.30"
+

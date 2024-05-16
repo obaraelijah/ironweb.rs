@@ -10,7 +10,10 @@ use actix_web::{
 };
 use anyhow::{format_err, Ok, Result};
 use diesel::{r2d2::ConnectionManager, IntoSql, PgConnection};
+use dotenv::dotenv;
+use log::{debug, error};
 use r2d2::Pool;
+use std::env;
 use std::{
     net::{SocketAddr, ToSocketAddrs},
     slice::from_ref,
@@ -29,17 +32,17 @@ pub struct Server {
 impl Server {
     /// Create a new server instance
     pub fn from_config(config: &Config) -> Result<Self> {
+        dotenv().ok();
+
         // Actor system
         let runner = actix::System::new();
 
         // database executor actors
-        let database_url = format!(
-            "postgres://{}:{}@{}/{}",
-            config.postgres.username,
-            config.postgres.password,
-            config.postgres.host,
-            config.postgres.database,
-        );
+        let database_url = env::var("DATABASE_URL").map_err(|e| {
+            error!("DATABASE_URL not set in .env: {:?}", e);
+            e
+        })?;
+        debug!("Database URL: {}", database_url);
 
         let manager = ConnectionManager::<PgConnection>::new(database_url);
         let pool = Pool::builder().build(manager)?;

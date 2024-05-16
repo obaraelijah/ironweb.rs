@@ -28,4 +28,5 @@ num_cpus = "1.13.0"
 jsonwebtoken = "9.3.0"
 thiserror = "1.0.30"
 uuid = { version = "1.8.0", features = ["v4"] }
+dotenv = "0.15.0"
 

@@ -1,5 +1,4 @@
 #[cfg(test)]
-
 use crate::token::Token;
 use anyhow::Result;
 

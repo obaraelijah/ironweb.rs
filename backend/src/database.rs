@@ -29,10 +29,9 @@ impl Handler<CreateSession> for DatabaseExecutor {
     fn handle(&mut self, msg: CreateSession, _: &mut Self::Context) -> Self::Result {
         // Insert the session into the database
         debug!("Creating new session: {}", msg.0);
-        let conn = &mut *self.0.get()?;
         Ok(insert_into(sessions)
             .values(&Session::new(msg.0))
-            .get_result::<Session>(conn)?)
+            .get_result::<Session>(&mut *self.0.get()?)?)
     }
 }
 
@@ -55,13 +54,27 @@ impl Handler<UpdateSession> for DatabaseExecutor {
     fn handle(&mut self, msg: UpdateSession, _: &mut Self::Context) -> Self::Result {
         // Update the session
         debug!("Updating session: {}", msg.old_token);
-        let conn = &mut *self.0.get()?;
         Ok(update(sessions.filter(token.eq(&msg.old_token)))
             .set(token.eq(&msg.new_token))
-            .get_result::<Session>(conn)?)
+            .get_result::<Session>(&mut *self.0.get()?)?)
     }
 }
 
 /// Delete session + needs a token
 pub struct DeleteSession(pub String);
  
+impl Message for DeleteSession {
+    type Result = Result<()>;
+}
+
+impl Handler<DeleteSession> for DatabaseExecutor {
+    type Result = Result<()>;
+
+    fn handle(&mut self, msg: DeleteSession, _: &mut Self::Context) -> Self::Result {
+
+        // Delete the session
+        debug!("Deleting session: {}", msg.0);
+        delete(sessions.filter(token.eq(&msg.0))).execute(&mut *self.0.get()?)?;
+        Ok(())
+    }
+}

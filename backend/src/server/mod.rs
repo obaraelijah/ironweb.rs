@@ -1,7 +1,9 @@
 mod test;
 
-use crate::database::DatabaseExecutor;
-use crate::http::login_credentials::login_credentials;
+use crate::{
+    database::DatabaseExecutor,
+    http::{login_credentials, login_session, logout},
+};
 use actix::{prelude::*, SystemRunner};
 use actix_web::{
     middleware,
@@ -42,7 +44,6 @@ impl Server {
             error!("DATABASE_URL not set in .env: {:?}", e);
             e
         })?;
-        debug!("Database URL: {}", database_url);
 
         let manager = ConnectionManager::<PgConnection>::new(database_url);
         let pool = Pool::builder().build(manager)?;
@@ -53,6 +54,8 @@ impl Server {
                 .app_data(db_addr.clone())
                 .wrap(middleware::Logger::default())
                 .service(resource(API_URL_LOGIN_CREDENTIALS).route(post().to(login_credentials)))
+                .service(resource(API_URL_LOGIN_SESSION).route(post().to(login_session)))
+                .service(resource(API_URL_LOGOUT).route(post().to(logout)))
         });
 
         // server url from configuration

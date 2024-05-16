@@ -3,6 +3,7 @@
 use crate::schema::sessions;
 use serde::{Deserialize, Serialize};
 use std::convert::From;
+use diesel::{Insertable, Queryable};
 
 #[cfg_attr(feature = "backend", derive(Insertable, Queryable))]
 #[cfg_attr(feature = "backend", table_name = "sessions")]

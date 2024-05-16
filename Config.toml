@@ -1,3 +1,6 @@
+[server]
+url = "http://127.0.0.1:30080"
+
 [log]
 actix_web = "debug"
 webapp = "trace"

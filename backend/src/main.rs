@@ -2,7 +2,9 @@ use std::env::set_var;
 
 use anyhow::{format_err, Result};
 use clap::{App, Arg};
+use log::info;
 use webapp::config::Config;
+use backend::Server;
 
 fn main() -> Result<()> {
     // Define CLI parameters using the App API
@@ -42,6 +44,15 @@ fn main() -> Result<()> {
     );
     // Initialize the logger
     env_logger::init();
+
+    // Create and start the server
+    info!(
+        "Starting server from config path {} for url {}",
+        config_filename, config.server.url
+    );
+    let server = Server::from_config(&config)?;
+
+    server.start()?;
 
     Ok(())
 }

@@ -1,5 +1,9 @@
 [server]
 url = "http://127.0.0.1:30080"
+redirect_from = [
+    "http://127.0.0.1:30081",
+    "https://127.0.0.1:30082",
+]
 
 [log]
 actix_web = "debug"

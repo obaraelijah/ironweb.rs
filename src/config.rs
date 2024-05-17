@@ -18,6 +18,9 @@ impl Config {
 #[derive(Deserialize, Clone)]
 pub struct ServerConfig {
     pub url: String,
+
+    // redirecting URLs
+    pub redirect_from: Vec<String>,
 }
 
 #[derive(Deserialize, Clone)]

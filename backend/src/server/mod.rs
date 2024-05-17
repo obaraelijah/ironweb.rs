@@ -6,16 +6,17 @@ use crate::{
 };
 use actix::{prelude::*, SystemRunner};
 use actix_web::{
+    http::header::{CONTENT_TYPE, LOCATION},
     middleware,
-    web::{self, post, resource},
-    App, HttpServer,
+    web::{self, get, post, resource},
+    App, HttpResponse, HttpServer, HttpRequest,
 };
-use anyhow::{format_err, Ok, Result};
+use anyhow::{format_err, Result};
 use diesel::{r2d2::ConnectionManager, IntoSql, PgConnection};
 use dotenv::dotenv;
-use log::{debug, error};
+use log::{debug, error, info, warn};
 use r2d2::Pool;
-use std::env;
+use std::{env, intrinsics::mir::Move};
 use std::{
     net::{SocketAddr, ToSocketAddrs},
     slice::from_ref,
@@ -78,10 +79,62 @@ impl Server {
     }
 
     pub fn start(self) -> Result<()> {
-        self.runner.run()?;
+        // redirecting server
+        self.start_redirects();
 
+        // main server
+        self.runner.run()?;
         Ok(())
     }
+
+    fn start_redirects(&self) {
+        // Check if we need to create a redirecting server
+        if !self.config.server.redirect_from.is_empty() {
+            // Prepare needed variables
+            let server_url = self.url.clone();
+            let urls = self.config.server.redirect_from.to_owned();
+            let config_clone = self.config.clone();
+
+            // Create a separate thread for redirecting
+            thread::spawn(move || {
+                let system = actix::System::new();
+                let url = server_url.clone();
+
+                // Create redirecting server
+                let mut server = HttpServer::new(move || {
+                    let location = url.clone();
+                    App::new().service(resource("/").route(get().to(move || {
+                        HttpResponse::PermanentRedirect()
+                            .header(LOCATION, location.as_str())
+                            .finish()
+                    })))
+                });
+
+                // Bind the URLs if possible
+                for url in &urls {
+                    if let Ok(valid_url) = Url::parse(url) {
+                        info!(
+                            "Starting server to redirect from {} to {}",
+                            valid_url, server_url
+                        );
+                        let addrs = Self::url_to_socket_addrs(&valid_url).unwrap();
+                        if valid_url.scheme() == "https" {
+                            todo!()
+                        } else {
+                            server = server.bind(addrs.as_slice()).unwrap();
+                        }
+                    } else {
+                        warn!("Skipping invalid url: {}", url);
+                    }
+                }
+
+                // Start the server and the system
+                server.run();
+                system.run().unwrap();
+            });
+        }
+    }
+
 
     /// Convert an `Url` to a vector of `SocketAddr`
     pub fn url_to_socket_addrs(url: &Url) -> Result<Vec<SocketAddr>> {

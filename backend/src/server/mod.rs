@@ -16,7 +16,7 @@ use diesel::{r2d2::ConnectionManager, IntoSql, PgConnection};
 use dotenv::dotenv;
 use log::{debug, error, info, warn};
 use r2d2::Pool;
-use std::{env, intrinsics::mir::Move};
+use std::env;
 use std::{
     net::{SocketAddr, ToSocketAddrs},
     slice::from_ref,
@@ -38,7 +38,7 @@ impl Server {
         dotenv().ok();
 
         // Actor system
-        let runner = actix::System::new();
+        let runner = actix::System::new("backend");
 
         // database executor actors
         let database_url = env::var("DATABASE_URL").map_err(|e| {
@@ -97,7 +97,7 @@ impl Server {
 
             // Create a separate thread for redirecting
             thread::spawn(move || {
-                let system = actix::System::new();
+                let system = actix::System::new("redirect");
                 let url = server_url.clone();
 
                 // Create redirecting server

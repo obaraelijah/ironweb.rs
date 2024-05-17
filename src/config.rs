@@ -1,6 +1,6 @@
 use anyhow::Result;
 use serde::Deserialize;
-use std::fs::read_to_string;
+use std::{fs::read_to_string, path::PathBuf};
 
 #[derive(Deserialize, Clone)]
 pub struct Config {
@@ -18,6 +18,12 @@ impl Config {
 #[derive(Deserialize, Clone)]
 pub struct ServerConfig {
     pub url: String,
+
+    // Server certificate
+    pub cert: PathBuf,
+
+    // Server key
+    pub key: PathBuf,
 
     // redirecting URLs
     pub redirect_from: Vec<String>,

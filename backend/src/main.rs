@@ -1,5 +1,6 @@
-use std::env::set_var;
+extern crate openssl;
 
+use std::env::set_var;
 use anyhow::{format_err, Result};
 use backend::Server;
 use clap::{App, Arg};

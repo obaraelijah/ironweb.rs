@@ -9,21 +9,21 @@ use actix_cors::Cors;
 use actix_web::{
     http::header::{CONTENT_TYPE, LOCATION},
     middleware,
-    web::{self, get, post, resource},
-    App, HttpResponse, HttpServer, HttpRequest,
+    web::{get, post, resource},
+    App, HttpResponse, HttpServer,
 };
 use anyhow::{format_err, Result};
-use diesel::{r2d2::ConnectionManager, IntoSql, PgConnection};
+use diesel::{r2d2::ConnectionManager, PgConnection};
 use dotenv::dotenv;
-use log::{debug, error, info, warn};
+use log::{error, info, warn};
 use r2d2::Pool;
 use std::env;
 use std::{
     net::{SocketAddr, ToSocketAddrs},
-    slice::from_ref,
     thread,
 };
 use url::{Host, Url};
+use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod};
 use webapp::{config::Config, API_URL_LOGIN_CREDENTIALS, API_URL_LOGIN_SESSION, API_URL_LOGOUT};
 
 /// The server instance
@@ -73,7 +73,10 @@ impl Server {
         let addrs = Self::url_to_socket_addrs(&url)?;
 
         if url.scheme() == "https" {
-            todo!("Handle HTTPS configuration");
+            // todo!("Handle HTTPS configuration");
+            server
+                .bind_openssl(addrs.as_slice(), Self::build_tls(&config)?)?
+                .run();
         } else {
             server.bind(addrs.as_slice())?.run();
         }
@@ -92,6 +95,14 @@ impl Server {
         // main server
         self.runner.run()?;
         Ok(())
+    }
+
+    /// Build an SslAcceptorBuilder from a config
+    fn build_tls(config: &Config) -> Result<SslAcceptorBuilder> {
+        let mut tls_builder = SslAcceptor::mozilla_intermediate(SslMethod::tls())?;
+        tls_builder.set_private_key_file(&config.server.key, SslFiletype::PEM)?;
+        tls_builder.set_certificate_chain_file(&config.server.cert)?;
+        Ok(tls_builder)
     }
 
     fn start_redirects(&self) {

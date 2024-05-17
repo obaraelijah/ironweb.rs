@@ -5,6 +5,7 @@ use crate::{
     http::{login_credentials, login_session, logout},
 };
 use actix::{prelude::*, SystemRunner};
+use actix_cors::Cors;
 use actix_web::{
     http::header::{CONTENT_TYPE, LOCATION},
     middleware,
@@ -49,10 +50,16 @@ impl Server {
         let manager = ConnectionManager::<PgConnection>::new(database_url);
         let pool = Pool::builder().build(manager)?;
         let db_addr = SyncArbiter::start(num_cpus::get(), move || DatabaseExecutor(pool.clone()));
-
+        
         let server = HttpServer::new(move || {
             App::new()
                 .app_data(db_addr.clone())
+                .wrap(
+                    Cors::default()
+                        .allowed_methods(vec!["GET", "POST"])
+                        .allowed_header(CONTENT_TYPE)
+                        .max_age(3600),
+                )
                 .wrap(middleware::Logger::default())
                 .service(resource(API_URL_LOGIN_CREDENTIALS).route(post().to(login_credentials)))
                 .service(resource(API_URL_LOGIN_SESSION).route(post().to(login_session)))

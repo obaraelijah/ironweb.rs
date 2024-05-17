@@ -36,7 +36,7 @@ pub fn create_test_server() -> Result<Url> {
 
     config.server.url = url.to_string();
 
-    // start server 
+    // start server
     thread::spawn(move || Server::from_config(&config.clone()).unwrap().start());
 
     // wait untill server is up
@@ -138,5 +138,22 @@ fn fail_to_login_with_wrong_session() -> Result<()> {
 
     // Then
     assert_eq!(res.status().as_u16(), 401);
+    Ok(())
+}
+
+#[test]
+fn succeed_to_logout() -> Result<()> {
+    // Given
+    let mut url = create_test_server()?;
+    url.set_path(API_URL_LOGOUT);
+
+    // When
+    let res = Client::new()
+        .post(url.as_str())
+        .json(&request::Logout(Session::new("wrong")))
+        .send()?;
+
+    // Then
+    assert!(res.status().is_success());
     Ok(())
 }

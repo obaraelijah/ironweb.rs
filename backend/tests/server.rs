@@ -1,5 +1,6 @@
 use anyhow::{format_err, Result};
 use lazy_static::lazy_static;
+use log::info;
 use reqwest::blocking::Client;
 use serde_json::from_slice;
 use std::{sync::Mutex, thread, time::Duration};
@@ -35,6 +36,7 @@ pub fn create_test_server() -> Result<Url> {
         .map_err(|_| format_err!("Unable to set server port"))?;
 
     config.server.url = url.to_string();
+    config.server.redirect_from = vec![];
 
     // start server
     thread::spawn(move || Server::from_config(&config.clone()).unwrap().start());
@@ -51,6 +53,53 @@ pub fn create_test_server() -> Result<Url> {
 
     // Server url
     Ok(url)
+}
+
+#[test]
+fn succeed_to_create_server_with_common_redirects() -> Result<()> {
+    // Given
+    let mut config = get_config()?;
+    let mut url = Url::parse(&config.server.url)?;
+    url.set_port(Some(get_next_port()))
+        .map_err(|_| format_err!("Unable to set server port"))?;
+    config.server.url = url.to_string();
+
+    let redirect_url = "http://127.0.0.1:30666".to_owned();
+    config.server.redirect_from = vec![
+        redirect_url.clone(),
+        "https://localhost:30667".to_owned(),
+        "invalid".to_owned(),
+    ];
+
+    // When
+    let config_clone = config.clone();
+    thread::spawn(move || {
+        Server::from_config(&config_clone).unwrap().start().unwrap();
+    });
+
+    loop {
+        match Client::new().get(url.as_str()).send() {
+            Ok(res) => {
+                if res.status().is_success() {
+                    info!("Server started successfully.");
+                    break;
+                }
+            }
+            Err(e) => {
+                info!("Waiting for server to start: {:?}", e);
+                thread::sleep(std::time::Duration::from_millis(100));
+            }
+        }
+    }
+
+    let res = Client::new().get(&redirect_url).send()?;
+    let final_url = res.url().to_string();
+
+    // Then
+    assert!(!final_url.contains(&redirect_url), "Redirect did not occur as expected.");
+    assert_eq!(final_url, url.to_string(), "Redirected to incorrect URL.");
+
+    Ok(())
 }
 
 #[test]

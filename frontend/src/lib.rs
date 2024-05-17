@@ -7,6 +7,8 @@ fn app() -> Html {
     }
 }
 
+struct RootComponent; // Define your root component
+
 fn main() {
-    yew::start_app::<App>();
+    yew::start_app::<RootComponent>(); // Provide the root component as a generic argument
 }

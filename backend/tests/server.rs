@@ -96,7 +96,10 @@ fn succeed_to_create_server_with_common_redirects() -> Result<()> {
     let final_url = res.url().to_string();
 
     // Then
-    assert!(!final_url.contains(&redirect_url), "Redirect did not occur as expected.");
+    assert!(
+        !final_url.contains(&redirect_url),
+        "Redirect did not occur as expected."
+    );
     assert_eq!(final_url, url.to_string(), "Redirected to incorrect URL.");
 
     Ok(())

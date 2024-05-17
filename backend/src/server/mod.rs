@@ -16,6 +16,7 @@ use anyhow::{format_err, Result};
 use diesel::{r2d2::ConnectionManager, PgConnection};
 use dotenv::dotenv;
 use log::{error, info, warn};
+use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod};
 use r2d2::Pool;
 use std::env;
 use std::{
@@ -23,7 +24,6 @@ use std::{
     thread,
 };
 use url::{Host, Url};
-use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod};
 use webapp::{config::Config, API_URL_LOGIN_CREDENTIALS, API_URL_LOGIN_SESSION, API_URL_LOGOUT};
 
 /// The server instance
@@ -50,7 +50,7 @@ impl Server {
         let manager = ConnectionManager::<PgConnection>::new(database_url);
         let pool = Pool::builder().build(manager)?;
         let db_addr = SyncArbiter::start(num_cpus::get(), move || DatabaseExecutor(pool.clone()));
-        
+
         let server = HttpServer::new(move || {
             App::new()
                 .app_data(db_addr.clone())
@@ -137,7 +137,11 @@ impl Server {
                         );
                         let addrs = Self::url_to_socket_addrs(&valid_url).unwrap();
                         if valid_url.scheme() == "https" {
-                            todo!()
+                            if let Ok(tls) = Self::build_tls(&config_clone) {
+                                server = server.bind_openssl(addrs.as_slice(), tls).unwrap();
+                            } else {
+                                warn!("Unable to build TLS acceptor for server: {}", valid_url);
+                            }
                         } else {
                             server = server.bind(addrs.as_slice()).unwrap();
                         }
@@ -152,7 +156,6 @@ impl Server {
             });
         }
     }
-
 
     /// Convert an `Url` to a vector of `SocketAddr`
     pub fn url_to_socket_addrs(url: &Url) -> Result<Vec<SocketAddr>> {

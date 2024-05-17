@@ -16,6 +16,7 @@ impl Config {
 }
 
 #[derive(Deserialize, Clone)]
+#[serde(rename_all = "kebab-case")]
 pub struct ServerConfig {
     pub url: String,
 
@@ -30,6 +31,7 @@ pub struct ServerConfig {
 }
 
 #[derive(Deserialize, Clone)]
+#[serde(rename_all = "kebab-case")]
 pub struct LogConfig {
     /// The logging level of actix-web
     pub actix_web: String,
